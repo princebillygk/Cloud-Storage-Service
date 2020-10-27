@@ -1,0 +1,76 @@
+package spaceModel
+
+import (
+	"cloudstorageapi.com/configs"
+	"errors"
+	"github.com/lib/pq"
+)
+
+type Space struct {
+	Id          int
+	Name        string
+	AccessToken string
+}
+
+func (space *Space) Save() error {
+	err := configs.Connection.
+		QueryRow("INSERT INTO spaces(space_name) values($1) Returning id, access_key", space.Name).
+		Scan(&space.Id, &space.AccessToken)
+	if err != nil {
+		if err, ok := err.(*pq.Error); ok && err.Code.Name() == "unique_violation" {
+			return errors.New("Space name already exists. Please choose a different space name")
+		} else {
+			return errors.New("Something went wrong while creating new space")
+		}
+	}
+	return nil
+}
+
+func (space *Space) UpdateName(newName string) error {
+	_, err := configs.Connection.Exec("UPDATE spaces SET space_name=$1 WHERE id=$2", newName, space.Id)
+	if err != nil {
+		return errors.New("Something went wrong")
+	}
+	space.Name = newName
+	return nil
+}
+
+func (space *Space) Delete() error {
+	_, err := configs.Connection.Exec("DELETE FROM spaces WHERE id=$1", space.Id)
+	if err != nil {
+		return errors.New("Something went wrong")
+	}
+	return nil
+}
+
+func FindSpaceById(spaceId int) (Space, error) {
+	space := Space{}
+	err := configs.Connection.
+		QueryRow("SELECT * FROM spaces WHERE id = $1", spaceId).
+		Scan(&space.Id, &space.Name, &space.AccessToken)
+	if err != nil {
+		if _, ok := err.(*pq.Error); ok {
+			return space, errors.New("Some error occured")
+		}
+		return space, errors.New("Cannot find any space with this id")
+	}
+	return space, nil
+}
+
+func All() ([]Space, error) {
+	spaces := make([]Space, 0, 10)
+	rows, err := configs.Connection.
+		Query("SELECT id, space_name from spaces ORDER BY space_name")
+	if err != nil {
+		return spaces, errors.New("Something went wrong")
+	}
+	for rows.Next() {
+		space := Space{}
+		err := rows.Scan(&space.Id, &space.Name)
+		if err != nil {
+			return spaces, errors.New("Some error occured while parsing data")
+		}
+		spaces = append(spaces, space)
+	}
+	return spaces, nil
+}
