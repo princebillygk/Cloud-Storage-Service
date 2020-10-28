@@ -4,6 +4,9 @@ import (
 	"cloudstorageapi.com/configs"
 	"errors"
 	"github.com/lib/pq"
+	"os"
+	"path/filepath"
+	"strconv"
 )
 
 type Space struct {
@@ -23,6 +26,12 @@ func (space *Space) Save() error {
 			return errors.New("Something went wrong while creating new space")
 		}
 	}
+
+	err = space.createSpaceInFileSystem()
+	if err != nil {
+		space.Delete()
+		return errors.New("Failed to create new folder")
+	}
 	return nil
 }
 
@@ -36,7 +45,12 @@ func (space *Space) UpdateName(newName string) error {
 }
 
 func (space *Space) Delete() error {
-	_, err := configs.Connection.Exec("DELETE FROM spaces WHERE id=$1", space.Id)
+	err := space.removeSpaceInFileSystem()
+	if err != nil {
+		return errors.New("Couldn't remove directory")
+	}
+
+	_, err = configs.Connection.Exec("DELETE FROM spaces WHERE id=$1", space.Id)
 	if err != nil {
 		return errors.New("Something went wrong")
 	}
@@ -73,4 +87,16 @@ func All() ([]Space, error) {
 		spaces = append(spaces, space)
 	}
 	return spaces, nil
+}
+
+func (space *Space) createSpaceInFileSystem() error {
+	return os.MkdirAll(space.GetFilePath(), os.ModePerm)
+}
+
+func (space *Space) removeSpaceInFileSystem() error {
+	return os.RemoveAll(space.GetFilePath())
+}
+
+func (space *Space) GetFilePath() string {
+	return filepath.Join(configs.STORAGE_ROOT_PATH, strconv.Itoa(space.Id))
 }
