@@ -10,6 +10,7 @@ import (
 
 //fileSystemConfigs
 const storageFolderName = "cloud-store-files-here"
+const MAX_UPLOAD_SIZE_IN_BYTE = 64000000 //64MB
 
 //db-configs
 const dbname = "cloudstorageapi"
