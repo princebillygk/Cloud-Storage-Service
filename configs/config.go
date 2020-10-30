@@ -2,7 +2,9 @@ package configs
 
 import (
 	"cloudstorageapi.com/database"
+	"context"
 	"database/sql"
+	"github.com/gomodule/redigo/redis"
 	"log"
 	"os"
 	"path/filepath"
@@ -45,4 +47,9 @@ func configureDatabase() {
 		log.Fatal(err)
 		return
 	}
+}
+
+func GetRedisConnection() (redis.Conn, error) {
+	ctx := context.Background()
+	return redis.DialContext(ctx, "tcp", ":6379")
 }

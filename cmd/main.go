@@ -98,8 +98,12 @@ func getDetails(spaceId int) {
 		return
 	}
 
-	fmt.Printf("Space ID: %d\nName: %s\nAccess Token: %s\n",
-		space.Id, space.Name, space.AccessToken)
+	if space == nil {
+		fmt.Println("No space found with this id")
+	} else {
+		fmt.Printf("Space ID: %d\nName: %s\nAccess Token: %s\n",
+			space.Id, space.Name, space.AccessToken)
+	}
 }
 
 func editSpace(spaceId int) {
@@ -109,6 +113,10 @@ func editSpace(spaceId int) {
 	space, err := spaceModel.FindSpaceById(spaceId)
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+	if space == nil {
+		fmt.Println("No space found with this id")
 		return
 	}
 	fmt.Printf("Space ID: %d\nCurrent Name: %s\n", space.Id, space.Name)
@@ -131,6 +139,10 @@ func deleteSpace(spaceId int) {
 	space, err := spaceModel.FindSpaceById(spaceId)
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+	if space == nil {
+		fmt.Println("No space found with this id")
 		return
 	}
 	fmt.Printf("Space ID: %d\nCurrent Name: %s\n", space.Id, space.Name)

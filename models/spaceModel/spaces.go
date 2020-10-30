@@ -57,18 +57,19 @@ func (space *Space) Delete() error {
 	return nil
 }
 
-func FindSpaceById(spaceId int) (Space, error) {
+func FindSpaceById(spaceId int) (*Space, error) {
 	space := Space{}
 	err := configs.Connection.
 		QueryRow("SELECT * FROM spaces WHERE id = $1", spaceId).
 		Scan(&space.Id, &space.Name, &space.AccessToken)
+
 	if err != nil {
 		if _, ok := err.(*pq.Error); ok {
-			return space, errors.New("Some error occured")
+			return nil, errors.New("Some error occured")
 		}
-		return space, errors.New("Cannot find any space with this id")
+		return nil, nil
 	}
-	return space, nil
+	return &space, nil
 }
 
 func All() ([]Space, error) {
@@ -76,13 +77,13 @@ func All() ([]Space, error) {
 	rows, err := configs.Connection.
 		Query("SELECT id, space_name from spaces ORDER BY space_name")
 	if err != nil {
-		return spaces, errors.New("Something went wrong")
+		return nil, errors.New("Something went wrong")
 	}
 	for rows.Next() {
 		space := Space{}
 		err := rows.Scan(&space.Id, &space.Name)
 		if err != nil {
-			return spaces, errors.New("Some error occured while parsing data")
+			return nil, errors.New("Some error occured while parsing data")
 		}
 		spaces = append(spaces, space)
 	}
