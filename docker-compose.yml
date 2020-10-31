@@ -1,0 +1,38 @@
+version: "3"
+networks:
+  csa_n:
+
+services:
+  cloudstorageapi:
+    build: .
+    restart: always
+    container_name: csa_go
+    ports:
+      - "8000:8000"
+    volumes: 
+      - ./storage:/storage
+    networks:
+      - csa_n
+
+  db:
+    container_name: csa_psql
+    image: postgres
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: cNJcibGX74sl
+      POSTGRES_USER: cloudstorageapi
+    ports:
+        - 5432:5432
+    networks:
+        - csa_n
+
+  redis:
+      image: redis:latest 
+      container_name: csa_redis
+      restart: always
+      ports:
+          - 6379:6379
+      networks:
+         - csa_n

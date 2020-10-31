@@ -6,19 +6,21 @@ import (
 	"database/sql"
 	"github.com/gomodule/redigo/redis"
 	"log"
-	"os"
 	"path/filepath"
 )
 
 //fileSystemConfigs
-const storageFolderName = "cloud-store-files-here"
+const storageFolderName = "storage"
 const MAX_UPLOAD_SIZE_IN_BYTE = 64000000 //64MB
 
 //db-configs
 const dbname = "cloudstorageapi"
 const dbuser = "cloudstorageapi"
-const dbpassword = ""
-const dbhost = "localhost"
+const dbpassword = "cNJcibGX74s"
+const dbhost = "db"
+
+//redis config
+const redisHost = "redis"
 
 var STORAGE_ROOT_PATH string
 var Connection *sql.DB
@@ -32,10 +34,11 @@ func init() {
 }
 
 func configureStorage() {
-	rootdir, err := os.UserHomeDir()
-	if err != nil {
-		rootdir = "."
-	}
+	rootdir := "/"
+	//rootdir, err := os.UserHomeDir()
+	//if err != nil {
+	//	rootdir = "/"
+	//}
 	STORAGE_ROOT_PATH = filepath.Join(rootdir, storageFolderName)
 }
 
@@ -51,5 +54,5 @@ func configureDatabase() {
 
 func GetRedisConnection() (redis.Conn, error) {
 	ctx := context.Background()
-	return redis.DialContext(ctx, "tcp", ":6379")
+	return redis.DialContext(ctx, "tcp", redisHost+":6379")
 }
