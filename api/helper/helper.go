@@ -19,7 +19,7 @@ func NewJsonResponse(w http.ResponseWriter) *JsonResponse {
 
 func (jr *JsonResponse) SetStatus(st int) *JsonResponse {
 	jr.HttpStatus = st
-	jr.RW.WriteHeader(http.StatusBadRequest)
+	jr.RW.WriteHeader(st)
 	return jr
 }
 

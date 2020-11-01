@@ -1,5 +1,5 @@
-postgres-data/
-storage/
+postgres-data
+storage
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim

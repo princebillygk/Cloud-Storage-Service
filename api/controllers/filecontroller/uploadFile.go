@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 type UploadFileResponseData struct {
@@ -40,7 +39,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	defer file.Close()
 
 	//getting file extension
-	fileExtension := strings.Split(fileHeader.Filename, ".")[1]
+	fileExtension := filepath.Ext(fileHeader.Filename)
 
 	//This will never fail cause we checked space id in middleware
 	spaceIdStr := r.Header.Get("Space-ID")
@@ -49,7 +48,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	spacePath := space.GetFilePath()
 
 	fileSavingPath := filepath.Join(spacePath, filePath)
-	newFileName := fileName + "." + fileExtension
+	newFileName := fileName + fileExtension
 
 	//creating neccesary path before writing gonna ignore any error for now
 	_ = os.MkdirAll(fileSavingPath, os.ModePerm)
@@ -65,7 +64,8 @@ func UploadFile(w http.ResponseWriter, r *http.Request, params httprouter.Params
 	defer f.Close()
 	io.Copy(f, file)
 
-	downloadURL := filepath.Join(r.Host, "downloads", spaceIdStr, filePath, newFileName)
+	newFileAddress := filepath.Join(filePath, newFileName)
+	downloadURL := "http://" + filepath.Join(r.Host, "downloads", spaceIdStr, newFileAddress)
 
 	//success response
 	helper.NewJsonResponse(w).SetStatus(http.StatusCreated).
@@ -74,7 +74,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request, params httprouter.Params
 				Name:         fileName,
 				Path:         filePath,
 				SizeInPath:   fileHeader.Size,
-				FilePath:     filepath.Join(filePath, newFileName),
+				FilePath:     newFileAddress,
 				DownloadLink: downloadURL},
 			"File Uploaded Successfully"))
 }

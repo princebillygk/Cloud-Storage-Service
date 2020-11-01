@@ -21,7 +21,7 @@ func (space *Space) Save() error {
 		QueryRow("INSERT INTO spaces(space_name) values($1) Returning id, access_key", space.Name).
 		Scan(&space.Id, &space.AccessToken)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		if err, ok := err.(*pq.Error); ok && err.Code.Name() == "unique_violation" {
 			return errors.New("Space name already exists. Please choose a different space name")
 		} else {
@@ -31,7 +31,7 @@ func (space *Space) Save() error {
 
 	err = space.createSpaceInFileSystem()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		space.Delete()
 		return errors.New("Failed to create new folder")
 	}
@@ -41,7 +41,7 @@ func (space *Space) Save() error {
 func (space *Space) UpdateName(newName string) error {
 	_, err := configs.Connection.Exec("UPDATE spaces SET space_name=$1 WHERE id=$2", newName, space.Id)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		return errors.New("Something went wrong")
 	}
 	space.Name = newName
@@ -51,13 +51,13 @@ func (space *Space) UpdateName(newName string) error {
 func (space *Space) Delete() error {
 	err := space.removeSpaceInFileSystem()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		return errors.New("Couldn't remove directory")
 	}
 
 	_, err = configs.Connection.Exec("DELETE FROM spaces WHERE id=$1", space.Id)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		return errors.New("Something went wrong")
 	}
 	return nil
@@ -70,7 +70,7 @@ func FindSpaceById(spaceId int) (*Space, error) {
 		Scan(&space.Id, &space.Name, &space.AccessToken)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		if _, ok := err.(*pq.Error); ok {
 			return nil, errors.New("Some error occured")
 		}
@@ -84,7 +84,7 @@ func All() ([]Space, error) {
 	rows, err := configs.Connection.
 		Query("SELECT id, space_name from spaces ORDER BY space_name")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 		return nil, errors.New("Something went wrong")
 	}
 	for rows.Next() {
